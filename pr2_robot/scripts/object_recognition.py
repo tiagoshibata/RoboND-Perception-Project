@@ -130,35 +130,35 @@ def pcl_callback(pcl_msg):
     objects_message = pcl_to_ros(cluster_cloud)
     pcl_objects_pub.publish(objects_message)
 
-    # detected_objects_labels = []
-    # detected_objects = []
-    # for index, pts_list in enumerate(clusters):
-    #     pcl_cluster = objects_cloud.extract(pts_list)
-    #     ros_cluster = pcl_to_ros(pcl_cluster)
-    #
-    #     # Extract histogram features
-    #     color_histogram = compute_color_histograms(ros_cluster, using_hsv=False)
-    #     normals = get_normals(ros_cluster)
-    #     nhists = compute_normal_histograms(normals)
-    #     feature = np.concatenate((color_histogram, nhists))
-    #
-    #     # Prediction
-    #     prediction = clf.predict(scaler.transform(feature.reshape(1,-1)))
-    #     label = encoder.inverse_transform(prediction)[0]
-    #     detected_objects_labels.append(label)
-    #
-    #     # Publish a label into RViz
-    #     label_pos = list(point_cloud[pts_list[0]])
-    #     label_pos[2] += .4
-    #     object_markers_pub.publish(make_label(label, label_pos, index))
-    #
-    #     detected_object = DetectedObject()
-    #     detected_object.label = label
-    #     detected_object.cloud = ros_cluster
-    #     detected_objects.append(detected_object)
-    #
-    # rospy.loginfo('Detected {} objects: {}'.format(len(detected_objects_labels), detected_objects_labels))
-    # detected_objects_pub.publish(detected_objects)
+    detected_objects_labels = []
+    detected_objects = []
+    for index, pts_list in enumerate(clusters):
+        pcl_cluster = objects_cloud.extract(pts_list)
+        ros_cluster = pcl_to_ros(pcl_cluster)
+
+        # Extract histogram features
+        color_histogram = compute_color_histograms(ros_cluster, using_hsv=False)
+        normals = get_normals(ros_cluster)
+        nhists = compute_normal_histograms(normals)
+        feature = np.concatenate((color_histogram, nhists))
+
+        # Prediction
+        prediction = clf.predict(scaler.transform(feature.reshape(1, -1)))
+        label = encoder.inverse_transform(prediction)[0]
+        detected_objects_labels.append(label)
+
+        # Publish a label into RViz
+        label_pos = list(point_cloud[pts_list[0]])
+        label_pos[2] += .4
+        object_markers_pub.publish(make_label(label, label_pos, index))
+
+        detected_object = DetectedObject()
+        detected_object.label = label
+        detected_object.cloud = ros_cluster
+        detected_objects.append(detected_object)
+
+    rospy.loginfo('Detected {} objects: {}'.format(len(detected_objects_labels), detected_objects_labels))
+    detected_objects_pub.publish(detected_objects)
 
     # Suggested location for where to invoke your pr2_mover() function within pcl_callback()
     # Could add some logic to determine whether or not your object detections are robust
@@ -213,8 +213,13 @@ if __name__ == '__main__':
     pcl_objects_pub = rospy.Publisher("/pcl_objects", PointCloud2, queue_size=1)
     pcl_table_pub = rospy.Publisher("/pcl_table", PointCloud2, queue_size=1)
     detected_objects_pub = rospy.Publisher("/detected_objects", DetectedObjectsArray, queue_size=1)
-    # pcl_table_pub = rospy.Publisher("/pcl_table", PointCloud2, queue_size=1)
-    # TODO: Load Model From disk
+
+    model = pickle.load(open('model.sav', 'rb'))
+    clf = model['classifier']
+    encoder = LabelEncoder()
+    encoder.classes_ = model['classes']
+    scaler = model['scaler']
+
     print('Spinning...')
     rospy.spin()
     print('Done!')
