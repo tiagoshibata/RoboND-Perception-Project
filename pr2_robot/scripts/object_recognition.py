@@ -137,7 +137,7 @@ def pcl_callback(pcl_msg):
         ros_cluster = pcl_to_ros(pcl_cluster)
 
         # Extract histogram features
-        color_histogram = compute_color_histograms(ros_cluster, using_hsv=False)
+        color_histogram = compute_color_histograms(ros_cluster, using_hsv=True)
         normals = get_normals(ros_cluster)
         nhists = compute_normal_histograms(normals)
         feature = np.concatenate((color_histogram, nhists))
@@ -212,6 +212,7 @@ if __name__ == '__main__':
     pcl_sub = rospy.Subscriber("/pr2/world/points", PointCloud2, pcl_callback, queue_size=1)
     pcl_objects_pub = rospy.Publisher("/pcl_objects", PointCloud2, queue_size=1)
     pcl_table_pub = rospy.Publisher("/pcl_table", PointCloud2, queue_size=1)
+    object_markers_pub = rospy.Publisher("/object_markers", Marker, queue_size=1)
     detected_objects_pub = rospy.Publisher("/detected_objects", DetectedObjectsArray, queue_size=1)
 
     model = pickle.load(open('model.sav', 'rb'))
