@@ -22,6 +22,8 @@ from pr2_robot.srv import *
 from rospy_message_converter import message_converter
 import yaml
 
+run_pick_place = False
+
 pcl_objects_pub = None
 object_markers_pub = None
 detected_objects_pub = None
@@ -192,11 +194,12 @@ def pr2_mover(detected_objects):
     object_list_param = rospy.get_param('/object_list')
     dropboxes = rospy.get_param('/dropbox')
 
-    if not has_collision_map:
-        has_collision_map = True
-        for angle in [3.14 / 2, 0, -3.14 / 2, 0]:
-            rotation_pub.publish(angle)
-            rospy.sleep(8)
+    if run_pick_place:
+        if not has_collision_map:
+            has_collision_map = True
+            for angle in [3.14 / 2, 0, -3.14 / 2, 0]:
+                rotation_pub.publish(angle)
+                rospy.sleep(8)
 
     world = world_number(object_list_param)
     test_scene_num.data = world
@@ -225,13 +228,14 @@ def pr2_mover(detected_objects):
 
         yaml_output.append(make_yaml_dict(test_scene_num, arm_name, object_name, pick_pose, place_pose))
 
-        rospy.wait_for_service('pick_place_routine')
-        try:
-            pick_place_routine = rospy.ServiceProxy('pick_place_routine', PickPlace)
-            resp = pick_place_routine(test_scene_num, object_name, arm_name, pick_pose, place_pose)
-            print("Response: ", resp.success)
-        except rospy.ServiceException as e:
-            print("Service call failed: {}".format(e))
+        if run_pick_place:
+            rospy.wait_for_service('pick_place_routine')
+            try:
+                pick_place_routine = rospy.ServiceProxy('pick_place_routine', PickPlace)
+                resp = pick_place_routine(test_scene_num, object_name, arm_name, pick_pose, place_pose)
+                print("Response: ", resp.success)
+            except rospy.ServiceException as e:
+                print("Service call failed: {}".format(e))
 
     print('YAML output: {}'.format(yaml_output))
     send_to_yaml('output.yaml', yaml_output)
