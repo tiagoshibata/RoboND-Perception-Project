@@ -25,6 +25,7 @@ import yaml
 pcl_objects_pub = None
 object_markers_pub = None
 detected_objects_pub = None
+rotation_pub = None
 
 
 def get_normals(cloud):
@@ -96,6 +97,15 @@ def euclidean_clustering(point_cloud):
     return ec.Extract()
 
 
+def world_number(objects):
+    names = [x['name'] for x in objects]
+    if 'sticky_notes' in names:
+        return 3
+    if 'book' in names:
+        return 2
+    return 1
+
+
 def pcl_callback(pcl_msg):
     cloud = ros_to_pcl(pcl_msg)
     cloud = outlier_removal(cloud)
@@ -160,51 +170,71 @@ def pcl_callback(pcl_msg):
     rospy.loginfo('Detected {} objects: {}'.format(len(detected_objects_labels), detected_objects_labels))
     detected_objects_pub.publish(detected_objects)
 
-    # Suggested location for where to invoke your pr2_mover() function within pcl_callback()
-    # Could add some logic to determine whether or not your object detections are robust
-    # before calling pr2_mover()
-    # try:
-    #     pr2_mover(detected_objects_list)
-    # except rospy.ROSInterruptException:
-    #     pass
+    try:
+        pr2_mover(detected_objects)
+    except rospy.ROSInterruptException:
+        pass
 
 
-# function to load parameters and request PickPlace service
-def pr2_mover(object_list):
+has_collision_map = False
 
-    # TODO: Initialize variables
 
-    # TODO: Get/Read parameters
+def pr2_mover(detected_objects):
+    global has_collision_map
+    labels = []
+    test_scene_num = Int32()
+    arm_name = String()
+    object_name = String()
+    place_pose = Pose()
+    pick_pose = Pose()
+    yaml_output = []
 
-    # TODO: Parse parameters into individual variables
+    object_list_param = rospy.get_param('/object_list')
+    dropboxes = rospy.get_param('/dropbox')
 
-    # TODO: Rotate PR2 in place to capture side tables for the collision map
+    if not has_collision_map:
+        has_collision_map = True
+        for angle in [3.14 / 2, 0, -3.14 / 2, 0]:
+            rotation_pub.publish(angle)
+            rospy.sleep(8)
 
-    # TODO: Loop through the pick list
+    world = world_number(object_list_param)
+    test_scene_num.data = world
+    for i, obj in enumerate(detected_objects):
+        object_name.data = str(obj.label)
+        object_group = next(x['group'] for x in object_list_param if x['name'] == obj.label)
+        labels.append(obj.label)
+        points_arr = ros_to_pcl(obj.cloud).to_array()
+        centroid = np.mean(points_arr, axis=0)[:3]
 
-        # TODO: Get the PointCloud for a given object and obtain it's centroid
+        pick_pose.position.x, pick_pose.position.y, pick_pose.position.z = (
+            np.asscalar(x) for x in centroid)
+        group_info = {
+            'red': {
+                'arm': 'left',
+                'place_position': dropboxes[0]['position'],
+            },
+            'green': {
+                'arm': 'right',
+                'place_position': dropboxes[1]['position'],
+            },
+        }
+        group = group_info[object_group]
+        arm_name.data = group['arm']
+        place_pose.position.x, place_pose.position.y, place_pose.position.z = group['place_position']
 
-        # TODO: Create 'place_pose' for the object
+        yaml_output.append(make_yaml_dict(test_scene_num, arm_name, object_name, pick_pose, place_pose))
 
-        # TODO: Assign the arm to be used for pick_place
-
-        # TODO: Create a list of dictionaries (made with make_yaml_dict()) for later output to yaml format
-
-        # Wait for 'pick_place_routine' service to come up
         rospy.wait_for_service('pick_place_routine')
-
         try:
             pick_place_routine = rospy.ServiceProxy('pick_place_routine', PickPlace)
-
-            # TODO: Insert your message variables to be sent as a service request
-            resp = pick_place_routine(TEST_SCENE_NUM, OBJECT_NAME, WHICH_ARM, PICK_POSE, PLACE_POSE)
-
+            resp = pick_place_routine(test_scene_num, object_name, arm_name, pick_pose, place_pose)
             print("Response: ", resp.success)
-
         except rospy.ServiceException as e:
             print("Service call failed: {}".format(e))
 
-    # TODO: Output your request parameters into output yaml file
+    print('YAML output: {}'.format(yaml_output))
+    send_to_yaml('output.yaml', yaml_output)
 
 
 if __name__ == '__main__':
@@ -214,6 +244,7 @@ if __name__ == '__main__':
     pcl_table_pub = rospy.Publisher("/pcl_table", PointCloud2, queue_size=1)
     object_markers_pub = rospy.Publisher("/object_markers", Marker, queue_size=1)
     detected_objects_pub = rospy.Publisher("/detected_objects", DetectedObjectsArray, queue_size=1)
+    rotation_pub = rospy.Publisher('/pr2/world_joint_controller/command', Float64, queue_size=1)
 
     model = pickle.load(open('model.sav', 'rb'))
     clf = model['classifier']
