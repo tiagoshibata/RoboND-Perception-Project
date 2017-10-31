@@ -114,7 +114,24 @@ The training sets were generated just like in exercise X.
 ### Exercise 1, 2 and 3 pipeline implemented
 #### 1. Complete Exercise 1 steps. Pipeline for filtering and RANSAC plane fitting implemented.
 
-Link + screenshots
+Exercise 1 was completed in repository [RoboND-Perception-Exercises](https://github.com/tiagoshibata/RoboND-Perception-Exercises/blob/master/Exercise-1/RANSAC.py). Screenshots:
+
+Original point cloud:
+
+![Original point cloud](Writeup_images/Exercise-1/Original.png)
+
+Voxel grid filtered:
+
+![Voxel grid filtered](Writeup_images/Exercise-1/Downsampled.png)
+
+Pass through filtered:
+
+![Pass through filtered](Writeup_images/Exercise-1/Pass-through.png)
+
+RANSAC plane fitting inliers and outliers:
+
+![RANSAC inliers](Writeup_images/Exercise-1/RANSAC-inliers.png)
+![RANSAC outliers](Writeup_images/Exercise-1/RANSAC-outliers.png)
 
 #### 2. Complete Exercise 2 steps: Pipeline including clustering for segmentation implemented.
 
