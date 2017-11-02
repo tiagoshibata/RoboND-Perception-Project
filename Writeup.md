@@ -167,13 +167,19 @@ The messages' data was saved to YAML files for [submission with the writeup and 
 
 World 1:
 
+![Object classification](Writeup_images/Project/Classification-1-1.png)
+
+![Object classification](Writeup_images/Project/Classification-1-2.png)
+
 World 2:
+
+![Object classification](Writeup_images/Project/Classification-2.png)
 
 World 3:
 
-![Object classification](Writeup_images/Project/Classification-1.png)
+![Object classification](Writeup_images/Project/Classification-3-1.png)
 
-![Object classification](Writeup_images/Project/Classification-2.png)
+![Object classification](Writeup_images/Project/Classification-3-2.png)
 
 # Extra Challenges: Complete the Pick & Place
 
