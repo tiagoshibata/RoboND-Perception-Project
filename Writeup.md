@@ -35,6 +35,8 @@ Exercise 3 was implemented. [Capture of features](https://github.com/tiagoshibat
 
 ![Confusion matrix](Writeup_images/Exercise-3/Confusion-matrix.png)
 
+![Normalized confusion matrix](Writeup_images/Exercise-3/Confusion-matrix-normalized.png)
+
 ---
 
 # Steps:
@@ -163,6 +165,12 @@ except rospy.ROSInterruptException:
 
 The messages' data was saved to YAML files for [submission with the writeup and can be found here](models/).
 
+World 1:
+
+World 2:
+
+World 3:
+
 ![Object classification](Writeup_images/Project/Classification-1.png)
 
 ![Object classification](Writeup_images/Project/Classification-2.png)
@@ -250,11 +258,8 @@ Furthermore, the provided code would sometimes not grab the item when using the 
 
 ![Dropping](Writeup_images/Project/Dropping.png)
 
-## [Rubric](https://review.udacity.com/#!/rubrics/1067/view) Points
-### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.
-
 ### Improvements
 
 The optional part of the project was not finished and has a lot of space for improvement. Collision maps should be built to allow the robot to dodge other objects when planning trajectories.
 
-The SVM classifier could also be optimized. I didn't optimize it for accuracy, keeping it simple and with default settings, only changing the color space to HSV. I could fiddle with the histogram and SVM settings to achieve better accuracy.
+The SVM classifier could also be optimized. I didn't optimize it for accuracy, keeping it simple and with default settings, only changing the color space to HSV and the number of collected samples. I could fiddle with the histogram and SVM settings to achieve better accuracy.
