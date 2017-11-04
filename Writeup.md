@@ -163,7 +163,7 @@ except rospy.ROSInterruptException:
     pass
 ```
 
-The messages' data was saved to YAML files for [submission with the writeup and can be found here](models/).
+First, I trained a SVM for each world and created 3 models. Each result was saved to an output file for submission. The models and YAML output [can be found here](models/).
 
 World 1:
 
@@ -180,6 +180,12 @@ World 3:
 ![Object classification](Writeup_images/Project/Classification-3-1.png)
 
 ![Object classification](Writeup_images/Project/Classification-3-2.png)
+
+However, after submitting my project to review, the reviewer clarified that the same model should be used in all scenarios. I re-ran worlds 1 and 2 using the full model (trained in world 3) and [achieved similar results, which can be found in files output_1.yaml and output_2.yaml](models/3/):
+
+![Object classification 1](Writeup_images/Project/Full-model-1.png)
+
+![Object classification 2](Writeup_images/Project/Full-model-2.png)
 
 # Extra Challenges: Complete the Pick & Place
 
